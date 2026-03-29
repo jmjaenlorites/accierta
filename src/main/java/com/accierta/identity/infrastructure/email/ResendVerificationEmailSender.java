@@ -31,17 +31,20 @@ public class ResendVerificationEmailSender implements VerificationEmailSender {
         String verifyUrl = emailProperties.verificationBaseUrl() + "?token=" + token;
 
         String html = """
-                <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-                  <h2>Verifica tu cuenta en Accierta</h2>
-                  <p>Tu código de verificación es:</p>
-                  <div style="background: #f4f4f5; border-radius: 8px; padding: 16px; text-align: center; margin: 24px 0;">
-                    <code style="font-size: 24px; letter-spacing: 2px; font-weight: bold;">%s</code>
-                  </div>
-                  <p>Copia este código y pégalo en la app, o haz clic en el siguiente enlace:</p>
-                  <p><a href="%s">Verificar mi cuenta</a></p>
-                  <p style="color: #71717a; font-size: 14px;">Este código expira en 24 horas.</p>
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                  <h2 style="margin: 0 0 16px;">Verifica tu cuenta en Accierta</h2>
+                  <p style="margin: 0 0 24px; color: #3f3f46;">Usa el botón de abajo para verificar tu cuenta, o copia el código manualmente en la app.</p>
+                  <table width="100%%" cellpadding="0" cellspacing="0" role="presentation" style="margin: 0 0 24px;">
+                    <tr>
+                      <td align="center">
+                        <a href="%s" style="display: inline-block; background: #6c5ce7; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Verificar mi cuenta</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin: 0; color: #a1a1aa; font-size: 12px;">Si el botón no funciona, introduce este código en la app: <code style="color: #71717a;">%s</code></p>
+                  <p style="margin: 8px 0 0; color: #a1a1aa; font-size: 12px;">Expira en 24 horas.</p>
                 </div>
-                """.formatted(token, verifyUrl);
+                """.formatted(verifyUrl, token);
 
         CreateEmailOptions params = CreateEmailOptions.builder()
                 .from(emailProperties.from())

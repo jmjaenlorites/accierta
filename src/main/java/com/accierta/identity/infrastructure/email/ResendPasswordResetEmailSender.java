@@ -30,16 +30,17 @@ public class ResendPasswordResetEmailSender implements PasswordResetEmailSender 
         String resetUrl = emailProperties.resetPasswordBaseUrl() + "?token=" + resetToken.value();
 
         String html = """
-                <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-                  <h2>Restablecer contraseña</h2>
-                  <p>Has solicitado restablecer tu contraseña en Accierta.</p>
-                  <p style="text-align: center; margin: 24px 0;">
-                    <a href="%s"
-                       style="background: #6c5ce7; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-                      Restablecer contraseña
-                    </a>
-                  </p>
-                  <p style="color: #71717a; font-size: 14px;">Si no solicitaste este cambio, ignora este email. El enlace expira en 1 hora.</p>
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                  <h2 style="margin: 0 0 16px;">Restablecer contraseña</h2>
+                  <p style="margin: 0 0 24px; color: #3f3f46;">Has solicitado restablecer tu contraseña en Accierta.</p>
+                  <table width="100%%" cellpadding="0" cellspacing="0" role="presentation" style="margin: 0 0 24px;">
+                    <tr>
+                      <td align="center">
+                        <a href="%s" style="display: inline-block; background: #6c5ce7; color: #ffffff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Restablecer contraseña</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin: 0; color: #a1a1aa; font-size: 13px;">Si no solicitaste este cambio, ignora este email. El enlace expira en 1 hora.</p>
                 </div>
                 """.formatted(resetUrl);
 

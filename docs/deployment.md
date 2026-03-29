@@ -51,6 +51,7 @@ These rules always apply:
 - Production and staging never share a database
 - Production and staging never share JWT secrets
 - Production and staging never share email credentials or sender configuration unless that is an intentional temporary choice
+- Staging emails include a `[STAGING]` prefix in the subject line to distinguish them from production emails. This is configured via `accierta.email.subject-prefix` in `application-staging.yml`. Production explicitly sets this to empty.
 - Production and staging never share domain names
 - Staging must be safe to reset without affecting production
 

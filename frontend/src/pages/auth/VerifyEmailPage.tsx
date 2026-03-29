@@ -1,6 +1,7 @@
+import { useEffect, useRef } from 'react'
 import { Mail } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { authService } from '../../lib/services'
 import { useToasts } from '../../lib/toasts'
 import { Button } from '../../components/ui/Button'
@@ -11,6 +12,21 @@ export function VerifyEmailPage() {
   const { pushToast } = useToasts()
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const tokenFromUrl = searchParams.get('token') ?? ''
+  const autoVerified = useRef(false)
+
+  useEffect(() => {
+    if (tokenFromUrl && !autoVerified.current) {
+      autoVerified.current = true
+      authService.verifyEmail(tokenFromUrl).then(() => {
+        pushToast(t('auth.verifiedTitle'), t('auth.verifiedMessage'), 'success')
+        navigate('/login')
+      }).catch(() => {
+        // Token invalid/expired — user stays on page and can retry manually
+      })
+    }
+  }, [tokenFromUrl, navigate, pushToast, t])
 
   return (
     <div className="auth-page anim-fade-in">
@@ -59,6 +75,7 @@ export function VerifyEmailPage() {
             autoComplete="one-time-code"
             required
             placeholder="abc123..."
+            defaultValue={tokenFromUrl}
           />
           <Button type="submit" fullWidth>{t('auth.verifyEmail')}</Button>
         </FormShell>
