@@ -52,6 +52,8 @@ The CI/CD model for this topology is documented in [ADR-009](./adr/009-monorepo-
 | Production | `https://accierta.com` | `https://api.accierta.com` | Main user-facing environment |
 | Staging | `https://staging.accierta.com` | `https://api-staging.accierta.com` | Pre-production validation |
 
+Production also accepts `https://www.accierta.com` as an approved browser origin for CORS and WebSocket handshakes, even if `accierta.com` remains the canonical web domain.
+
 ### Infrastructure responsibility split
 
 | Concern | Platform | Why |
@@ -69,6 +71,24 @@ All clients access the backend directly through its public API domain:
 - The backend is not hidden behind the web frontend in production.
 
 This is intentionally different from the local Docker Compose setup. In local development, the frontend container proxies `/api` and `/ws` to simplify local wiring. In deployed environments, the web app and the API are separate public applications because the system must support more than one client type.
+
+### Runtime configuration
+
+The deployed system relies on explicit runtime configuration instead of same-origin assumptions:
+- Frontend:
+  - `VITE_API_BASE_URL`
+  - `VITE_WS_BASE_URL`
+- Backend:
+  - `SPRING_PROFILES_ACTIVE`
+  - `ACCIERTA_SECURITY_JWT_SECRET`
+  - `ACCIERTA_GROUPS_INVITATION_BASE_URL`
+  - `SPRING_DATASOURCE_URL`
+  - `SPRING_DATASOURCE_USERNAME`
+  - `SPRING_DATASOURCE_PASSWORD`
+
+Environment profiles define approved browser origins:
+- `prod`: `https://accierta.com` and `https://www.accierta.com`
+- `staging`: `https://staging.accierta.com`
 
 ## Bounded context map
 
