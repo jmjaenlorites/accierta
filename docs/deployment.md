@@ -172,7 +172,9 @@ Backend runtime requirements:
 
 The `deploy-backend` workflow expects these repository secrets:
 - `COOLIFY_WEBHOOK_PROD`
+- `COOLIFY_TOKEN_PROD`
 - `COOLIFY_WEBHOOK_STAGING`
+- `COOLIFY_TOKEN_STAGING`
 
 ## CI/CD
 

@@ -41,14 +41,22 @@ jobs:
         if: github.ref_name == 'main'
         env:
           COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_PROD }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN_PROD }}
         run: |
           test -n "$COOLIFY_WEBHOOK_URL"
-          curl --fail --silent --show-error --request POST "$COOLIFY_WEBHOOK_URL"
+          test -n "$COOLIFY_TOKEN"
+          curl --fail --silent --show-error \
+            --request GET "$COOLIFY_WEBHOOK_URL" \
+            --header "Authorization: Bearer $COOLIFY_TOKEN"
 
       - name: Trigger staging deployment in Coolify
         if: github.ref_name == 'staging'
         env:
           COOLIFY_WEBHOOK_URL: ${{ secrets.COOLIFY_WEBHOOK_STAGING }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN_STAGING }}
         run: |
           test -n "$COOLIFY_WEBHOOK_URL"
-          curl --fail --silent --show-error --request POST "$COOLIFY_WEBHOOK_URL"
+          test -n "$COOLIFY_TOKEN"
+          curl --fail --silent --show-error \
+            --request GET "$COOLIFY_WEBHOOK_URL" \
+            --header "Authorization: Bearer $COOLIFY_TOKEN"
