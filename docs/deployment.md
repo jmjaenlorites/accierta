@@ -96,14 +96,6 @@ Frontend staging variables:
 - `VITE_API_BASE_URL=https://api-staging.accierta.com`
 - `VITE_WS_BASE_URL=wss://api-staging.accierta.com/ws`
 
-### GitHub secrets for frontend deployment
-
-The `deploy-frontend` workflow expects these repository secrets:
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_PAGES_PROJECT_PROD`
-- `CLOUDFLARE_PAGES_PROJECT_STAGING`
-
 ### Preview deployments
 
 Cloudflare Pages can create preview deployments for pull requests. These are useful for UI validation, but they do not replace the staging environment.
@@ -168,14 +160,6 @@ Backend runtime requirements:
 - configure WebSocket allowed origins for the approved frontend origins only
 - expose a health endpoint suitable for platform health checks
 
-### GitHub secrets for backend deployment
-
-The `deploy-backend` workflow expects these repository secrets:
-- `COOLIFY_WEBHOOK_PROD`
-- `COOLIFY_TOKEN_PROD`
-- `COOLIFY_WEBHOOK_STAGING`
-- `COOLIFY_TOKEN_STAGING`
-
 ## CI/CD
 
 ### Branch strategy
@@ -206,7 +190,7 @@ Recommended branch protection rules:
 Required status check to enable first:
 - `CI Status`
 
-For private repositories on GitHub Free, use plain repository secrets instead of GitHub environments. Environment-scoped secrets and approval gates for private repositories require a paid plan.
+For private repositories on GitHub Free, use repository rules and required checks instead of GitHub environments. Environment-scoped secrets and approval gates for private repositories require a paid plan.
 
 Optional but recommended:
 - prefer squash merge or rebase merge for a clean history
@@ -270,14 +254,14 @@ Recommended flow:
 1. Open PR into `staging`
 2. CI validates changed parts of the monorepo
 3. Merge into `staging`
-4. Cloudflare Pages deploys `staging.accierta.com`
-5. Coolify deploys `api-staging.accierta.com`
+4. Cloudflare Pages deploys `staging.accierta.com` from Git integration
+5. Coolify deploys `api-staging.accierta.com` from Git integration
 6. Manual verification happens on staging
 7. Open PR from `staging` to `main`
 8. CI runs again
 9. Merge into `main`
-10. Cloudflare Pages deploys production frontend
-11. Coolify deploys production backend
+10. Cloudflare Pages deploys production frontend from Git integration
+11. Coolify deploys production backend from Git integration
 
 This is intentionally explicit. It creates a real pre-production step instead of deploying straight from feature branches to production.
 
