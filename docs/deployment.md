@@ -291,6 +291,26 @@ This matters because otherwise every pull request would run every job, which get
 
 For this repository, you do **not** need heavy monorepo tooling yet. GitHub Actions path filters are enough.
 
+### Monorepo deployment tradeoff
+
+Cloudflare Pages and Coolify both deploy from Git integration at the repository + branch level.
+
+That means:
+- a commit that changes only `frontend/` still creates a new commit on the tracked branch
+- Cloudflare Pages will rebuild the frontend, which is expected
+- Coolify will also see a new commit on the same branch and may rebuild the backend, even if no backend files changed
+
+This is an intentional tradeoff in the current setup:
+- **Pros:** simpler operational model, fewer moving parts, no webhook/token deployment pipeline to maintain
+- **Cons:** backend rebuilds can happen for frontend-only commits, and vice versa if another provider watches the same branch
+
+We accept this inefficiency for now because the project is still small and deployment simplicity is more valuable than perfect path-aware CD.
+
+If this becomes too costly later, the next step is:
+- keep GitHub Actions for CI
+- move backend deployment triggers back to GitHub Actions with path filtering
+- let Coolify deploy only when backend-related paths changed
+
 ### Deployment flow
 
 Recommended flow:
