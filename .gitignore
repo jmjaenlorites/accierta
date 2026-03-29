@@ -1,5 +1,6 @@
 .DS_Store
-.gh.env
+*.env
+!.env.example
 .gradle/
 .sfdx/
 build/

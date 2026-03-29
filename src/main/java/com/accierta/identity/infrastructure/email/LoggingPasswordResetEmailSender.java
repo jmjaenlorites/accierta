@@ -5,9 +5,11 @@ import com.accierta.identity.domain.model.ResetToken;
 import com.accierta.identity.domain.port.out.PasswordResetEmailSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!prod & !staging")
 public class LoggingPasswordResetEmailSender implements PasswordResetEmailSender {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingPasswordResetEmailSender.class);

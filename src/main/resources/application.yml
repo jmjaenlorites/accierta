@@ -12,6 +12,11 @@ server:
 accierta:
   security:
     jwt-secret: ${ACCIERTA_SECURITY_JWT_SECRET:change-me-in-real-env-this-secret-must-be-at-least-32-bytes}
+  email:
+    api-key: ${ACCIERTA_EMAIL_API_KEY:}
+    from: ${ACCIERTA_EMAIL_FROM:Accierta <no-reply@notify.accierta.com>}
+    verification-base-url: ${ACCIERTA_EMAIL_VERIFICATION_BASE_URL:http://localhost:3000/verify}
+    reset-password-base-url: ${ACCIERTA_EMAIL_RESET_PASSWORD_BASE_URL:http://localhost:3000/reset-password}
   web:
     allowed-origins:
       - http://localhost:3000

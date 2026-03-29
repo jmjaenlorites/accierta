@@ -1,4 +1,7 @@
 accierta:
+  email:
+    verification-base-url: ${ACCIERTA_EMAIL_VERIFICATION_BASE_URL:https://accierta.com/verify}
+    reset-password-base-url: ${ACCIERTA_EMAIL_RESET_PASSWORD_BASE_URL:https://accierta.com/reset-password}
   web:
     allowed-origins:
       - https://accierta.com

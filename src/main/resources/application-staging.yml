@@ -1,4 +1,8 @@
 accierta:
+  email:
+    subject-prefix: "[STAGING] "
+    verification-base-url: ${ACCIERTA_EMAIL_VERIFICATION_BASE_URL:https://staging.accierta.com/verify}
+    reset-password-base-url: ${ACCIERTA_EMAIL_RESET_PASSWORD_BASE_URL:https://staging.accierta.com/reset-password}
   web:
     allowed-origins:
       - https://staging.accierta.com

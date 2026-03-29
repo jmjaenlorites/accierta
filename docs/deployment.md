@@ -176,7 +176,7 @@ At minimum, each Coolify backend app needs:
 - `SPRING_DATASOURCE_PASSWORD`
 - `ACCIERTA_SECURITY_JWT_SECRET`
 - `ACCIERTA_GROUPS_INVITATION_BASE_URL`
-- Resend-related secrets
+- `ACCIERTA_EMAIL_API_KEY`
 
 Recommended values:
 
@@ -184,6 +184,7 @@ Recommended values:
 |----------|------------|---------|
 | `SPRING_PROFILES_ACTIVE` | `prod` | `staging` |
 | `ACCIERTA_GROUPS_INVITATION_BASE_URL` | `https://accierta.com/invite` | `https://staging.accierta.com/invite` |
+| `ACCIERTA_EMAIL_API_KEY` | Resend API key | Resend API key |
 
 Backend runtime requirements:
 - trust forwarded headers from the reverse proxy
