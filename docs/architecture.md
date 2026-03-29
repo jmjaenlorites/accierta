@@ -2,11 +2,11 @@
 
 ## System overview
 
-Acerta is a modular monolith built with Java 21+ / Spring Boot 3.x. It follows DDD with Hexagonal Architecture internally and hand-made Event Sourcing for persistence. Each bounded context is a Spring Modulith module that communicates with others exclusively through domain events.
+Accierta is a modular monolith built with Java 21+ / Spring Boot 3.x. It follows DDD with Hexagonal Architecture internally and hand-made Event Sourcing for persistence. Each bounded context is a Spring Modulith module that communicates with others exclusively through domain events.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                        Acerta                           │
+│                        Accierta                           │
 │                                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
 │  │ Identity │  │  Groups  │  │ Betting  │              │
@@ -32,6 +32,43 @@ Acerta is a modular monolith built with Java 21+ / Spring Boot 3.x. It follows D
 │                React PWA (Frontend)                      │
 └─────────────────────────────────────────────────────────┘
 ```
+
+## Deployment topology
+
+Accierta is deployed as a **decoupled web + API system**.
+
+- The React PWA is a static frontend deployed independently from the backend.
+- The Spring Boot modular monolith is deployed as the public API application.
+- PostgreSQL is deployed alongside the backend, one database per environment.
+- Production and staging mirror each other with separate domains, infrastructure, data, and secrets.
+
+This decision is documented in [ADR-008](./adr/008-web-and-api-deployment-topology.md).
+The CI/CD model for this topology is documented in [ADR-009](./adr/009-monorepo-ci-cd.md).
+
+### Public entrypoints
+
+| Environment | Web frontend | Backend API | Notes |
+|-------------|--------------|-------------|-------|
+| Production | `https://accierta.com` | `https://api.accierta.com` | Main user-facing environment |
+| Staging | `https://staging.accierta.com` | `https://api-staging.accierta.com` | Pre-production validation |
+
+### Infrastructure responsibility split
+
+| Concern | Platform | Why |
+|---------|----------|-----|
+| Static frontend hosting | Cloudflare Pages | Edge delivery, asset caching, TLS, preview-friendly workflow |
+| Backend runtime | Coolify | Container deployment, environment variables, logs, secret management |
+| Database | Coolify-managed PostgreSQL | Stateful service close to backend runtime |
+| DNS and proxy | Cloudflare | Public DNS, TLS, request proxying, WebSocket support |
+
+### Client access model
+
+All clients access the backend directly through its public API domain:
+- The React PWA uses environment-specific API and WebSocket base URLs.
+- Future native iOS and Android clients use the same API boundary.
+- The backend is not hidden behind the web frontend in production.
+
+This is intentionally different from the local Docker Compose setup. In local development, the frontend container proxies `/api` and `/ws` to simplify local wiring. In deployed environments, the web app and the API are separate public applications because the system must support more than one client type.
 
 ## Bounded context map
 
