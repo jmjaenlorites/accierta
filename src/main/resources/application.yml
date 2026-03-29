@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: accierta
+  sql:
+    init:
+      mode: always
+
+server:
+  port: 8080
+
+accierta:
+  security:
+    jwt-secret: "change-me-in-real-env-this-secret-must-be-at-least-32-bytes"
+  groups:
+    invitation-base-url: "https://accierta.app/invite"
+  betting:
+    lifecycle:
+      enabled: true
+      fixed-delay-ms: 10000
+  resolution:
+    auto-accept:
+      enabled: true
+      fixed-delay-ms: 10000

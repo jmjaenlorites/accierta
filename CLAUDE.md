@@ -1,8 +1,8 @@
-# CLAUDE.md — Acerta
+# CLAUDE.md — Accierta
 
 ## Project overview
 
-Acerta is a multiplayer betting app where friend groups create predictions on any event, bet fictional points, and compete on a leaderboard over time. Real money is managed outside the app by the group.
+Accierta is a multiplayer betting app where friend groups create predictions on any event, bet fictional points, and compete on a leaderboard over time. Real money is managed outside the app by the group.
 
 **PRD:** [PRD.md](./PRD.md) — conceptual starting point. Specs in `docs/specs/` are the source of truth for implementation.
 
@@ -19,7 +19,7 @@ Acerta is a multiplayer betting app where friend groups create predictions on an
 | Email | Resend (transactional only: registration, reset, invitations) |
 | Testing | JUnit 5 + Mockito + Testcontainers + ArchUnit |
 | Build | Gradle (Kotlin DSL) |
-| Frontend | React (PWA for push notifications) |
+| Frontend | React (PWA) + Tailwind CSS + Lucide icons |
 | Infrastructure | Docker Compose (all services) |
 | MCP Servers | Chrome (PWA testing) |
 
@@ -163,7 +163,7 @@ HTTP/WS request → [Adapter in] → [Port in] → Domain logic → [Port out] �
 ### Module structure (Spring Modulith + Hexagonal)
 
 ```
-src/main/java/com/acerta/
+src/main/java/com/accierta/
   identity/                        # Bounded context: Identity
     domain/                        #   The hexagon — pure Java, zero dependencies
       model/                       #     Aggregates, entities, value objects
@@ -285,7 +285,7 @@ public class PostgresEventStore implements EventStore {
 - Integration tests use Testcontainers for a real PostgreSQL instance
 - Tests mirror the module and layer structure:
   ```
-  src/test/java/com/acerta/
+  src/test/java/com/accierta/
     betting/
       domain/          # Pure unit tests — fast, no dependencies
       application/     # Handler tests with mocked ports
@@ -302,6 +302,7 @@ CLAUDE.md                              # This file — entry point for AI agents
 PRD.md                                 # Conceptual starting point (not source of truth for implementation)
 docs/
   architecture.md                      # System architecture overview, bounded context map, data flow
+  design-system.md                     # UI/UX design guide — colors, typography, components, animations
   specs/
     identity/                          # Specs for Identity context
     groups/                            # Specs for Groups context

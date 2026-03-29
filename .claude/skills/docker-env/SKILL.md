@@ -1,6 +1,6 @@
 ---
 name: docker-env
-description: How to manage the Docker development environment for Acerta. Use when starting the project, resetting state, viewing logs, or troubleshooting infrastructure issues. Covers starting/stopping services, database resets, log inspection, and parallel agent setup with worktrees.
+description: How to manage the Docker development environment for Accierta. Use when starting the project, resetting state, viewing logs, or troubleshooting infrastructure issues. Covers starting/stopping services, database resets, log inspection, and parallel agent setup with worktrees.
 user-invocable: false
 ---
 
@@ -44,10 +44,10 @@ docker compose restart app
 
 ```bash
 # Interactive psql session
-docker compose exec postgres psql -U acerta -d acerta
+docker compose exec postgres psql -U accierta -d accierta
 
 # Run a single query
-docker compose exec postgres psql -U acerta -d acerta -c "SELECT COUNT(*) FROM events;"
+docker compose exec postgres psql -U accierta -d accierta -c "SELECT COUNT(*) FROM events;"
 ```
 
 ## Full reset (clean slate)
@@ -121,7 +121,7 @@ APP_PORT=8081 FRONTEND_PORT=3001 POSTGRES_PORT=5433 WORKTREE_ID=wt1 docker compo
 docker compose logs app --tail 50
 
 # Verify PostgreSQL is healthy
-docker compose exec postgres pg_isready -U acerta
+docker compose exec postgres pg_isready -U accierta
 ```
 
 ### Port already in use

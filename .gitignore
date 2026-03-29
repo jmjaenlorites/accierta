@@ -1,0 +1,8 @@
+.DS_Store
+.gh.env
+.gradle/
+.sfdx/
+build/
+frontend/dist/
+frontend/node_modules/
+

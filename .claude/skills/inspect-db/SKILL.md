@@ -15,13 +15,13 @@ Use psql directly via Docker. **Always check your local ports first** — if you
 grep -A2 'postgres' docker-compose.override.yml 2>/dev/null || echo "Using default ports"
 
 # Interactive session (adjust port if in worktree)
-docker compose exec postgres psql -U acerta -d acerta
+docker compose exec postgres psql -U accierta -d accierta
 
 # Run a single query
-docker compose exec postgres psql -U acerta -d acerta -c "SELECT COUNT(*) FROM events;"
+docker compose exec postgres psql -U accierta -d accierta -c "SELECT COUNT(*) FROM events;"
 
 # Run a query from outside Docker (useful if container name conflicts)
-psql -h localhost -p 5432 -U acerta -d acerta -c "SELECT COUNT(*) FROM events;"
+psql -h localhost -p 5432 -U accierta -d accierta -c "SELECT COUNT(*) FROM events;"
 ```
 
 ## Key tables to inspect

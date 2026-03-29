@@ -97,7 +97,7 @@ Response (201):
 ```json
 {
   "invitationToken": "token",
-  "invitationLink": "https://acerta.app/invite/token",
+  "invitationLink": "https://accierta.app/invite/token",
   "expiresAt": "2026-04-01T10:00:00Z"
 }
 ```
