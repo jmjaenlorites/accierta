@@ -1,4 +1,5 @@
 import type { Session, TokenPair } from './types'
+import { apiUrl } from './runtimeConfig'
 
 export type SessionAccess = {
   getSession: () => Session | null
@@ -22,7 +23,7 @@ export async function apiRequest<T>(
     headers.set('Authorization', `Bearer ${session.accessToken}`)
   }
 
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     ...options,
     headers,
     cache: 'no-store',

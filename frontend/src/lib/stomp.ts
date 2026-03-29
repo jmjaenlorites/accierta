@@ -1,3 +1,5 @@
+import { websocketUrl } from './runtimeConfig'
+
 export type StompSubscription = {
   disconnect: () => void
 }
@@ -6,8 +8,7 @@ export function subscribeToLeaderboard(
   groupId: string,
   onMessage: (payload: string) => void,
 ): StompSubscription {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const socket = new WebSocket(`${protocol}//${window.location.host}/ws`)
+  const socket = new WebSocket(websocketUrl())
   const subscriptionId = `sub-${Date.now()}`
 
   socket.addEventListener('open', () => {

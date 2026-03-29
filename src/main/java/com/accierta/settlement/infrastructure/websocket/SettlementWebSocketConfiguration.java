@@ -1,5 +1,6 @@
 package com.accierta.settlement.infrastructure.websocket;
 
+import com.accierta.shared.infrastructure.web.AcciertaWebProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -10,6 +11,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class SettlementWebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
 
+    private final AcciertaWebProperties webProperties;
+
+    public SettlementWebSocketConfiguration(AcciertaWebProperties webProperties) {
+        this.webProperties = webProperties;
+    }
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/group");
@@ -17,6 +24,6 @@ public class SettlementWebSocketConfiguration implements WebSocketMessageBrokerC
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
+        registry.addEndpoint("/ws").setAllowedOrigins(webProperties.allowedOriginsArray());
     }
 }

@@ -1,0 +1,6 @@
+accierta:
+  web:
+    allowed-origins:
+      - https://accierta.com
+  groups:
+    invitation-base-url: ${ACCIERTA_GROUPS_INVITATION_BASE_URL:https://accierta.com/invite}

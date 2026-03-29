@@ -1,0 +1,6 @@
+accierta:
+  web:
+    allowed-origins:
+      - https://staging.accierta.com
+  groups:
+    invitation-base-url: ${ACCIERTA_GROUPS_INVITATION_BASE_URL:https://staging.accierta.com/invite}
