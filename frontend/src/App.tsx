@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/layout/BottomNav'
 import { ToastViewport } from './components/ui/Toast'
 import { useSession } from './lib/session'
@@ -41,10 +41,15 @@ function RootRedirect() {
   return <Navigate to={session ? '/groups' : '/landing'} replace />
 }
 
+const NO_NAV_PREFIXES = ['/landing', '/privacy', '/terms', '/welcome', '/login', '/register', '/verify', '/reset-password', '/invite/']
+
 export default function App() {
+  const { pathname } = useLocation()
+  const hideNav = NO_NAV_PREFIXES.some((p) => pathname.startsWith(p))
+
   return (
     <>
-      <div className="app-shell">
+      <div className={`app-shell${hideNav ? ' no-nav' : ''}`}>
         <Routes>
           {/* Root redirect */}
           <Route path="/" element={<RootRedirect />} />

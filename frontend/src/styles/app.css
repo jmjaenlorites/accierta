@@ -9,6 +9,10 @@
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
+.app-shell.no-nav {
+  padding-bottom: 0;
+}
+
 /* Centered content column */
 .screen {
   width: min(100%, 480px);
