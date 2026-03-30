@@ -3,6 +3,13 @@ import { BottomNav } from './components/layout/BottomNav'
 import { ToastViewport } from './components/ui/Toast'
 import { useSession } from './lib/session'
 
+// Landing
+import { LandingPage } from './pages/LandingPage'
+
+// Legal
+import { PrivacyPage } from './pages/legal/PrivacyPage'
+import { TermsPage } from './pages/legal/TermsPage'
+
 // Auth pages
 import { WelcomePage } from './pages/auth/WelcomePage'
 import { LoginPage } from './pages/auth/LoginPage'
@@ -31,7 +38,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 
 function RootRedirect() {
   const { session } = useSession()
-  return <Navigate to={session ? '/groups' : '/welcome'} replace />
+  return <Navigate to={session ? '/groups' : '/landing'} replace />
 }
 
 export default function App() {
@@ -41,6 +48,13 @@ export default function App() {
         <Routes>
           {/* Root redirect */}
           <Route path="/" element={<RootRedirect />} />
+
+          {/* Landing page (public marketing) */}
+          <Route path="/landing" element={<LandingPage />} />
+
+          {/* Legal pages */}
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
 
           {/* Auth flow (no bottom nav) */}
           <Route path="/welcome" element={<WelcomePage />} />

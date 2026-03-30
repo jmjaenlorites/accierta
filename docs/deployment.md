@@ -77,6 +77,24 @@ Recommended web-domain policy:
 - optionally redirect `www.accierta.com` to `accierta.com`
 - still allow `www.accierta.com` as a valid backend origin to avoid browser failures during rollout or redirect transitions
 
+### Email Routing
+
+Inbound email for legal and privacy contacts is handled by **Cloudflare Email Routing** (free tier). No mail server or additional provider is needed — Cloudflare forwards incoming messages to a personal email address.
+
+Configured routes:
+
+| Address | Forwards to | Purpose |
+|---------|-------------|---------|
+| `privacy@accierta.com` | personal email | Privacy policy contact (GDPR rights, data requests) |
+| `legal@accierta.com` | personal email | Terms of Service contact (legal inquiries) |
+| `contact@accierta.com` | personal email | General contact |
+
+These addresses are referenced in the landing page footer links (`/privacy`, `/terms`).
+
+Setup: Cloudflare Dashboard → Email → Email Routing → Create rule. Cloudflare automatically provisions the required MX and TXT DNS records.
+
+Outbound transactional email (registration, password reset, invitations) continues to use **Resend**. Cloudflare Email Routing and Resend do not conflict — they handle different directions (inbound vs outbound).
+
 ## Cloudflare Pages
 
 Create one frontend deployment per environment.

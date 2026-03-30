@@ -331,6 +331,101 @@
     "minutesShort_one": "{{count}}m",
     "minutesShort_other": "{{count}}m"
   },
+  "landing": {
+    "nav": {
+      "cta": "Sign up"
+    },
+    "hero": {
+      "title": "Bet with friends. No real money needed.",
+      "subtitle": "Create predictions on anything, bet fictional points, and compete on your group's leaderboard.",
+      "cta": "Create free account",
+      "login": "Already have an account?",
+      "loginLink": "Log in"
+    },
+    "features": {
+      "eyebrow": "What you can do",
+      "title": "Everything you need",
+      "predictions": {
+        "title": "Free-form predictions",
+        "description": "Create bets on anything: sports, movies, who shows up late…"
+      },
+      "points": {
+        "title": "Fictional points",
+        "description": "No real money. Each group picks its currency: fake euros, beers, coffees."
+      },
+      "leaderboard": {
+        "title": "Leaderboard & streaks",
+        "description": "Compete to be the top predictor in your group."
+      },
+      "groups": {
+        "title": "Private groups",
+        "description": "Invite friends with a link. Only members see the bets."
+      }
+    },
+    "steps": {
+      "eyebrow": "3 steps",
+      "title": "It's that simple",
+      "1": {
+        "title": "Create your group",
+        "description": "Sign up and create a group for your friends. Share the invite link."
+      },
+      "2": {
+        "title": "Start a prediction",
+        "description": "Write a question, set the options and deadline. Everyone bets their points."
+      },
+      "3": {
+        "title": "Climb the leaderboard",
+        "description": "When the prediction resolves, correct bets earn points. The leaderboard updates instantly."
+      }
+    },
+    "trust": {
+      "eyebrow": "Why Accierta",
+      "title": "Built for friends, not gamblers",
+      "subtitle": "No real money. No ads. No data sold.",
+      "private": {
+        "title": "100% private",
+        "detail": "Your bets are only visible to group members."
+      },
+      "realtime": {
+        "title": "Real-time",
+        "detail": "Leaderboard, bets, and results update instantly."
+      },
+      "free": {
+        "title": "Free forever",
+        "detail": "No premium plans, no locked features. Everything for everyone."
+      }
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Frequently asked questions",
+      "1": {
+        "question": "Is real money involved?",
+        "answer": "No. You bet fictional points. Each group picks a symbolic currency (fake euros, beers, etc). If your group wants to handle real money, you do it outside the app."
+      },
+      "2": {
+        "question": "Is it free?",
+        "answer": "Yes, completely free. No paid plans, no premium features, no ads."
+      },
+      "3": {
+        "question": "How are bets resolved?",
+        "answer": "Any member can propose the result. If there's disagreement, it goes to a vote. The group's consensus decides."
+      },
+      "4": {
+        "question": "Can I have multiple groups?",
+        "answer": "Yes. You can be in as many groups as you want, each with its own leaderboard and currency."
+      }
+    },
+    "footer": {
+      "title": "Your group is waiting",
+      "subtitle": "Create your account in 30 seconds. No card, no spam.",
+      "cta": "Start for free",
+      "login": "Already have an account?",
+      "loginLink": "Log in",
+      "copyright": "Accierta {{year}}",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
   "status": {
     "OPEN": "Open",
     "CLOSED": "Closed",

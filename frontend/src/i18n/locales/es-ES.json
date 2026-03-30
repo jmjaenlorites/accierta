@@ -331,6 +331,101 @@
     "minutesShort_one": "{{count}}m",
     "minutesShort_other": "{{count}}m"
   },
+  "landing": {
+    "nav": {
+      "cta": "Regístrate"
+    },
+    "hero": {
+      "title": "Apuesta con tus amigos. Sin dinero de por medio.",
+      "subtitle": "Crea predicciones sobre cualquier cosa, apuesta puntos ficticios y compite en el ranking de tu grupo.",
+      "cta": "Crear cuenta gratis",
+      "login": "¿Ya tienes cuenta?",
+      "loginLink": "Inicia sesión"
+    },
+    "features": {
+      "eyebrow": "Qué puedes hacer",
+      "title": "Todo lo que necesitas",
+      "predictions": {
+        "title": "Predicciones libres",
+        "description": "Crea apuestas sobre cualquier cosa: deportes, pelis, quién llega tarde…"
+      },
+      "points": {
+        "title": "Puntos ficticios",
+        "description": "Sin dinero real. Cada grupo elige su moneda: euros ficticios, cervezas, cafés."
+      },
+      "leaderboard": {
+        "title": "Ranking y racha",
+        "description": "Compite por ser el mejor pronosticador de tu grupo."
+      },
+      "groups": {
+        "title": "Grupos privados",
+        "description": "Invita a tus amigos con un enlace. Solo los miembros ven las apuestas."
+      }
+    },
+    "steps": {
+      "eyebrow": "3 pasos",
+      "title": "Así de fácil",
+      "1": {
+        "title": "Crea tu grupo",
+        "description": "Regístrate y crea un grupo para tus amigos. Comparte el enlace de invitación."
+      },
+      "2": {
+        "title": "Lanza una porra",
+        "description": "Escribe una pregunta, define las opciones y el plazo. Todos apuestan sus puntos."
+      },
+      "3": {
+        "title": "Sube en el ranking",
+        "description": "Cuando se resuelve la porra, los aciertos suman puntos. El ranking se actualiza al instante."
+      }
+    },
+    "trust": {
+      "eyebrow": "Por qué Accierta",
+      "title": "Diseñado para amigos, no para apostadores",
+      "subtitle": "Sin dinero real. Sin anuncios. Sin datos vendidos.",
+      "private": {
+        "title": "100% privado",
+        "detail": "Tus apuestas solo las ven los miembros de tu grupo."
+      },
+      "realtime": {
+        "title": "Tiempo real",
+        "detail": "Ranking, apuestas y resultados se actualizan al instante."
+      },
+      "free": {
+        "title": "Gratis para siempre",
+        "detail": "Sin planes premium, sin funciones bloqueadas. Todo es para todos."
+      }
+    },
+    "faq": {
+      "eyebrow": "FAQ",
+      "title": "Preguntas frecuentes",
+      "1": {
+        "question": "¿Se apuesta dinero real?",
+        "answer": "No. Se apuestan puntos ficticios. Cada grupo elige su moneda simbólica (euros ficticios, cervezas, etc). Si tu grupo quiere gestionar dinero real, lo hacéis fuera de la app."
+      },
+      "2": {
+        "question": "¿Es gratis?",
+        "answer": "Sí, totalmente gratis. Sin planes de pago, sin funciones premium, sin publicidad."
+      },
+      "3": {
+        "question": "¿Cómo se resuelven las apuestas?",
+        "answer": "Cualquier miembro puede proponer el resultado. Si hay desacuerdo, se vota. El consenso del grupo decide."
+      },
+      "4": {
+        "question": "¿Puedo tener varios grupos?",
+        "answer": "Sí. Puedes estar en tantos grupos como quieras, cada uno con su propio ranking y moneda."
+      }
+    },
+    "footer": {
+      "title": "Tu grupo te espera",
+      "subtitle": "Crea tu cuenta en 30 segundos. Sin tarjeta, sin spam.",
+      "cta": "Empezar gratis",
+      "login": "¿Ya tienes cuenta?",
+      "loginLink": "Inicia sesión",
+      "copyright": "Accierta {{year}}",
+      "privacy": "Privacidad",
+      "terms": "Condiciones"
+    }
+  },
   "status": {
     "OPEN": "Abierta",
     "CLOSED": "Cerrada",

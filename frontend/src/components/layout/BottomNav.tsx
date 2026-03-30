@@ -8,6 +8,9 @@ export function BottomNav() {
 
   // Hide only on auth and invite pages
   const hide =
+    location.pathname.startsWith('/landing') ||
+    location.pathname.startsWith('/privacy') ||
+    location.pathname.startsWith('/terms') ||
     location.pathname.startsWith('/welcome') ||
     location.pathname.startsWith('/login') ||
     location.pathname.startsWith('/register') ||
