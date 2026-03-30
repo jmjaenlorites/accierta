@@ -22,7 +22,12 @@ export function BottomNav() {
 
   // Detect if we are inside a group and extract the groupId
   const groupMatch = location.pathname.match(/^\/groups\/([^/]+)/)
-  const groupId = groupMatch ? groupMatch[1] : null
+  const storedGroupId = localStorage.getItem('accierta.frontend.lastGroupId')
+  const groupId = groupMatch
+    ? groupMatch[1]
+    : location.pathname.startsWith('/porras/')
+      ? storedGroupId
+      : null
   const groupBase = groupId ? `/groups/${groupId}` : null
 
   // "Inicio" tab:

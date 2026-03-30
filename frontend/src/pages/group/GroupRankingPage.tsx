@@ -1,43 +1,48 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PodiumDisplay, MemberRow } from '../../components/ranking/PodiumDisplay'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import { formatMoney, metricForRank } from '../../lib/format'
 import { subscribeToLeaderboard } from '../../lib/stomp'
-import { useToasts } from '../../lib/toasts'
+import { useAsyncResource } from '../../lib/useAsyncResource'
+import { useSession } from '../../lib/useSession'
+import { useToasts } from '../../lib/useToasts'
 import type { Leaderboard } from '../../lib/types'
-import { useGroupContext } from './GroupLayout'
+import { useGroupContext } from './useGroupContext'
 
 export function GroupRankingPage() {
   const { group, services } = useGroupContext()
+  const { session } = useSession()
   const { pushToast } = useToasts()
   const { t } = useTranslation()
   const [rankBy, setRankBy] = useState('NET_MONEY')
-  const [leaderboard, setLeaderboard] = useState<Leaderboard | null>(null)
-  const [loading, setLoading] = useState(true)
   const subscriptionRef = useRef<{ disconnect: () => void } | null>(null)
 
+  const loadLeaderboard = useCallback(
+    async () => services.settlement.leaderboard(group.groupId, rankBy),
+    [group.groupId, rankBy, services],
+  )
+  const { data: leaderboard, error, loading, reload } = useAsyncResource<Leaderboard>(
+    `leaderboard:${group.groupId}:${rankBy}`,
+    loadLeaderboard,
+  )
+
   useEffect(() => {
-    setLoading(true)
-    void services.settlement.leaderboard(group.groupId, rankBy).then((data) => {
-      setLeaderboard(data)
-      setLoading(false)
-    })
-  }, [group.groupId, rankBy])
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
 
   useEffect(() => {
     subscriptionRef.current?.disconnect()
-    subscriptionRef.current = subscribeToLeaderboard(group.groupId, (payload) => {
-      try {
-        setLeaderboard(JSON.parse(payload) as Leaderboard)
-        pushToast(t('ranking.liveTitle'), t('ranking.liveMessage'), 'success')
-      } catch {
-        // ignore bad payloads
-      }
-    })
+    subscriptionRef.current = subscribeToLeaderboard(
+      group.groupId,
+      session?.accessToken,
+      reload,
+      (socketError) => pushToast(t('common.error'), socketError.message, 'error'),
+    )
     return () => subscriptionRef.current?.disconnect()
-  }, [group.groupId])
+  }, [group.groupId, pushToast, reload, session?.accessToken, t])
 
   const rankOptions = [
     ['NET_MONEY', t('ranking.net')],
