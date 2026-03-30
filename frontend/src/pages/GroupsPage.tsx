@@ -1,5 +1,5 @@
 import { Bell, Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GroupCard } from '../components/group/GroupCard'
 import { CreateGroupSheet } from '../components/group/CreateGroupSheet'
@@ -8,42 +8,58 @@ import { NotificationPanel } from '../components/layout/NotificationPanel'
 import { CardSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 import { createAuthedServices } from '../lib/services'
-import { useSession } from '../lib/session'
-import { useToasts } from '../lib/toasts'
-import type { GroupInsights, GroupSummary } from '../lib/types'
+import { useAsyncResource } from '../lib/useAsyncResource'
+import { useSession } from '../lib/useSession'
+import { useToasts } from '../lib/useToasts'
+import type { GroupInsights } from '../lib/types'
 
 export function GroupsPage() {
   const { session, setSession, clearSession } = useSession()
   const { pushToast } = useToasts()
   const { t } = useTranslation()
-  const [groups, setGroups] = useState<GroupSummary[]>([])
-  const [insights, setInsights] = useState<Record<string, GroupInsights>>({})
-  const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
 
-  const services = createAuthedServices({
-    getSession: () => session,
-    setSession,
-    clearSession,
-  })
+  const services = useMemo(
+    () =>
+      createAuthedServices({
+        getSession: () => session,
+        setSession,
+        clearSession,
+      }),
+    [clearSession, session, setSession],
+  )
 
-  async function load() {
-    setLoading(true)
+  const loadGroups = useCallback(async () => {
     const nextGroups = await services.groups.list()
-    setGroups(nextGroups)
-    const nextInsights = Object.fromEntries(
-      await Promise.all(
-        nextGroups.map(async (group) => [group.groupId, await services.groups.insights(group.groupId)] as const),
-      ),
+    const settledInsights = await Promise.allSettled(
+      nextGroups.map(async (group) => [group.groupId, await services.groups.insights(group.groupId)] as const),
     )
-    setInsights(nextInsights)
-    setLoading(false)
-  }
+
+    return {
+      groups: nextGroups,
+      insights: Object.fromEntries(
+        settledInsights.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : [])),
+      ),
+      partialFailure: settledInsights.some((result) => result.status === 'rejected'),
+    }
+  }, [services])
+
+  const { data, error, loading, reload } = useAsyncResource('groups', loadGroups)
 
   useEffect(() => {
-    void load()
-  }, [])
+    if (data?.partialFailure) {
+      pushToast(t('common.error'), t('groupsPage.insightsPartialError', 'Some group insights could not be loaded.'), 'error')
+    }
+  }, [data, pushToast, t])
+
+  useEffect(() => {
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
+
+  const groups = data?.groups ?? []
+  const insights: Record<string, GroupInsights> = data?.insights ?? {}
 
   return (
     <>
@@ -111,7 +127,7 @@ export function GroupsPage() {
           onCreate={async (payload) => {
             await services.groups.create(payload)
             pushToast(t('groupsPage.createdTitle'), t('groupsPage.createdMessage'), 'success')
-            await load()
+            reload()
           }}
         />
       )}

@@ -1,5 +1,5 @@
 import { Copy, Link, LogOut, UserPlus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '../../components/ui/Avatar'
@@ -12,10 +12,11 @@ import { MetricCard } from '../../components/ui/MetricCard'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import { formatMoney, shortEmail } from '../../lib/format'
 import { authService } from '../../lib/services'
-import { useSession } from '../../lib/session'
-import { useToasts } from '../../lib/toasts'
+import { useAsyncResource } from '../../lib/useAsyncResource'
+import { useSession } from '../../lib/useSession'
+import { useToasts } from '../../lib/useToasts'
 import type { CanLeaveGroup, InvitationCreation, MemberStats } from '../../lib/types'
-import { useGroupContext } from './GroupLayout'
+import { useGroupContext } from './useGroupContext'
 
 export function GroupProfilePage() {
   const { group, services } = useGroupContext()
@@ -24,21 +25,41 @@ export function GroupProfilePage() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
 
-  const [stats, setStats] = useState<MemberStats | null>(null)
-  const [canLeave, setCanLeave] = useState<CanLeaveGroup | null>(null)
   const [latestInvitation, setLatestInvitation] = useState<InvitationCreation | null>(null)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [loadingStats, setLoadingStats] = useState(true)
+
+  const loadProfile = useCallback(async () => {
+    if (!user?.sub) {
+      return { stats: null, canLeave: null }
+    }
+
+    const [statsResult, canLeaveResult] = await Promise.allSettled([
+      services.settlement.stats(group.groupId, user.sub),
+      services.groups.canLeave(group.groupId),
+    ])
+
+    return {
+      stats: statsResult.status === 'fulfilled' ? statsResult.value : null,
+      canLeave: canLeaveResult.status === 'fulfilled' ? canLeaveResult.value : null,
+    }
+  }, [group.groupId, services, user])
+
+  const { data, error, loading } = useAsyncResource<{
+    stats: MemberStats | null
+    canLeave: CanLeaveGroup | null
+  }>(
+    `group-profile:${group.groupId}:${user?.sub ?? ''}`,
+    loadProfile,
+  )
 
   useEffect(() => {
-    if (!user?.sub) return
-    setLoadingStats(true)
-    void Promise.all([
-      services.settlement.stats(group.groupId, user.sub).then(setStats).catch(() => null),
-      services.groups.canLeave(group.groupId).then(setCanLeave).catch(() => null),
-    ]).then(() => setLoadingStats(false))
-  }, [group.groupId, user?.sub])
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
+
+  const stats = data?.stats ?? null
+  const canLeave = data?.canLeave ?? null
 
   async function handleLeave() {
     await services.groups.leave(group.groupId)
@@ -89,7 +110,7 @@ export function GroupProfilePage() {
       </div>
 
       {/* Stats */}
-      {loadingStats ? (
+      {loading ? (
         <CardSkeleton />
       ) : stats ? (
         <div className="card card-body">

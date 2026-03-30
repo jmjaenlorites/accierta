@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useToasts } from '../../lib/toasts'
+import { useToasts } from '../../lib/useToasts'
 
 export function ToastViewport() {
   const { toasts, dismissToast } = useToasts()

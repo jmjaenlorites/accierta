@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useToasts } from '../../lib/toasts'
+import { useToasts } from '../../lib/useToasts'
 
 interface FormShellProps {
   onSubmit: (formData: FormData) => Promise<void>

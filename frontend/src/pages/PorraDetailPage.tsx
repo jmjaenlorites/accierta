@@ -1,5 +1,5 @@
 import { Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BetForm } from '../components/porra/BetForm'
@@ -15,9 +15,9 @@ import { CardSkeleton } from '../components/ui/Skeleton'
 import { Avatar } from '../components/ui/Avatar'
 import { formatDate, formatMoney, humanize, statusLabel, tagClass } from '../lib/format'
 import { createAuthedServices } from '../lib/services'
-import { useSession } from '../lib/session'
-import { useToasts } from '../lib/toasts'
-import type { PorraDetail, Resolution, ResolutionVotes } from '../lib/types'
+import { useAsyncResource } from '../lib/useAsyncResource'
+import { useSession } from '../lib/useSession'
+import { useToasts } from '../lib/useToasts'
 
 export function PorraDetailPage() {
   const { porraId = '' } = useParams()
@@ -25,9 +25,6 @@ export function PorraDetailPage() {
   const { session, setSession, clearSession } = useSession()
   const { pushToast } = useToasts()
   const { t } = useTranslation()
-  const [porra, setPorra] = useState<PorraDetail | null>(null)
-  const [resolution, setResolution] = useState<Resolution | null>(null)
-  const [votes, setVotes] = useState<ResolutionVotes | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const services = useMemo(
@@ -40,19 +37,37 @@ export function PorraDetailPage() {
     [clearSession, session, setSession],
   )
 
-  async function load() {
+  const loadPorra = useCallback(async () => {
     const detail = await services.porras.get(porraId)
-    setPorra(detail)
     if (detail.status === 'OPEN' || detail.status === 'CLOSED') {
-      setResolution(null)
-      setVotes(null)
-      return
+      return { porra: detail, resolution: null, votes: null }
     }
-    try { setResolution(await services.resolution.get(porraId)) } catch { setResolution(null) }
-    try { setVotes(await services.resolution.votes(porraId)) } catch { setVotes(null) }
-  }
 
-  useEffect(() => { void load() }, [porraId])
+    const [resolutionResult, votesResult] = await Promise.allSettled([
+      services.resolution.get(porraId),
+      services.resolution.votes(porraId),
+    ])
+
+    return {
+      porra: detail,
+      resolution: resolutionResult.status === 'fulfilled' ? resolutionResult.value : null,
+      votes: votesResult.status === 'fulfilled' ? votesResult.value : null,
+    }
+  }, [porraId, services])
+
+  const { data, error, loading, reload } = useAsyncResource(
+    `porra:${porraId}`,
+    loadPorra,
+  )
+
+  useEffect(() => {
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
+
+  const porra = data?.porra ?? null
+  const resolution = data?.resolution ?? null
+  const votes = data?.votes ?? null
 
   const groupLink = porra ? `/groups/${porra.groupId}` : '/groups'
 
@@ -64,7 +79,7 @@ export function PorraDetailPage() {
       />
 
       <div className="screen" style={{ paddingTop: 'var(--space-4)' }}>
-        {!porra ? (
+        {loading || !porra ? (
           <>
             <CardSkeleton />
             <CardSkeleton />
@@ -122,7 +137,7 @@ export function PorraDetailPage() {
                   onBet={async (prediction) => {
                     await services.porras.placeBet(porra.porraId, prediction)
                     pushToast(t('porra.betPlacedTitle'), t('porra.betPlacedMessage'), 'success')
-                    await load()
+                    reload()
                   }}
                 />
               </div>
@@ -138,22 +153,22 @@ export function PorraDetailPage() {
                   onPropose={async (result) => {
                     await services.resolution.propose(porra.porraId, result)
                     pushToast(t('porra.resolutionProposedTitle'), t('porra.resolutionProposedMessage'), 'success')
-                    await load()
+                    reload()
                   }}
                   onDispute={async (reason) => {
                     await services.resolution.dispute(porra.porraId, reason)
                     pushToast(t('porra.disputedTitle'), t('porra.disputedMessage'), 'success')
-                    await load()
+                    reload()
                   }}
                   onVote={async (result) => {
                     await services.resolution.vote(porra.porraId, result)
                     pushToast(t('porra.votedTitle'), t('porra.votedMessage'), 'success')
-                    await load()
+                    reload()
                   }}
                   onCancelPorra={async (reason) => {
                     await services.resolution.proposeCancellation(porra.porraId, reason)
                     pushToast(t('porra.cancellationProposedTitle'), t('porra.cancellationProposedMessage'), 'success')
-                    await load()
+                    reload()
                   }}
                 />
               </div>

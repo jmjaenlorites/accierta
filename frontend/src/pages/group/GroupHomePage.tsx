@@ -1,5 +1,5 @@
 import { Clock } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { PorraCard } from '../../components/porra/PorraCard'
@@ -7,25 +7,30 @@ import { Avatar } from '../../components/ui/Avatar'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import { shortEmail } from '../../lib/format'
-import { useSession } from '../../lib/session'
+import { useAsyncResource } from '../../lib/useAsyncResource'
+import { useSession } from '../../lib/useSession'
+import { useToasts } from '../../lib/useToasts'
 import type { PorraSummary } from '../../lib/types'
-import { useGroupContext } from './GroupLayout'
+import { useGroupContext } from './useGroupContext'
 
 export function GroupHomePage() {
   const { group, services } = useGroupContext()
   const { user } = useSession()
-  const [porras, setPorras] = useState<PorraSummary[]>([])
-  const [loading, setLoading] = useState(true)
+  const { pushToast } = useToasts()
   const { t } = useTranslation()
 
-  useEffect(() => {
-    setLoading(true)
-    void services.porras.list(group.groupId).then((data) => {
-      setPorras(data)
-      setLoading(false)
-    })
-  }, [group.groupId])
+  const loadPorras = useCallback(async () => services.porras.list(group.groupId), [group.groupId, services])
+  const { data: porrasData, error, loading } = useAsyncResource<PorraSummary[]>(
+    `group-home:${group.groupId}`,
+    loadPorras,
+  )
 
+  useEffect(() => {
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
+
+  const porras = porrasData ?? []
   const open = porras.filter((p) => p.status === 'OPEN').slice(0, 3)
 
   return (

@@ -1,24 +1,21 @@
 import { Bell } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Outlet, useOutletContext, useParams } from 'react-router-dom'
+import { Outlet, useParams } from 'react-router-dom'
 import { Header } from '../../components/layout/Header'
 import { NotificationPanel } from '../../components/layout/NotificationPanel'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { createAuthedServices } from '../../lib/services'
-import { useSession } from '../../lib/session'
+import { useAsyncResource } from '../../lib/useAsyncResource'
+import { useSession } from '../../lib/useSession'
+import { useToasts } from '../../lib/useToasts'
 import type { GroupDetail } from '../../lib/types'
-
-type GroupContext = {
-  group: GroupDetail
-  services: ReturnType<typeof createAuthedServices>
-  refreshGroup: () => Promise<void>
-}
+import type { GroupContext } from './useGroupContext'
 
 export function GroupLayout() {
   const { groupId = '' } = useParams()
-  const { session, setSession, clearSession, setCurrentGroupId } = useSession()
-  const [group, setGroup] = useState<GroupDetail | null>(null)
+  const { session, setSession, clearSession } = useSession()
+  const { pushToast } = useToasts()
   const [showNotifications, setShowNotifications] = useState(false)
   const { t } = useTranslation()
 
@@ -32,15 +29,21 @@ export function GroupLayout() {
     [clearSession, session, setSession],
   )
 
-  const refreshGroup = async () => {
-    const nextGroup = await services.groups.get(groupId)
-    setGroup(nextGroup)
-    setCurrentGroupId(groupId)
-  }
+  const loadGroup = useCallback(async () => services.groups.get(groupId), [groupId, services])
+  const { data: group, error, loading, reload } = useAsyncResource<GroupDetail>(
+    `group:${groupId}`,
+    loadGroup,
+  )
 
   useEffect(() => {
-    void refreshGroup()
-  }, [groupId])
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
+
+  useEffect(() => {
+    if (!group?.groupId) return
+    localStorage.setItem('accierta.frontend.lastGroupId', group.groupId)
+  }, [group?.groupId])
 
   return (
     <>
@@ -51,7 +54,7 @@ export function GroupLayout() {
         title={group?.name ?? ''}
         backTo="/groups"
         rightSlot={
-          !group ? null : (
+          loading || !group ? null : (
             <button
               className="icon-btn"
               type="button"
@@ -64,7 +67,7 @@ export function GroupLayout() {
         }
       />
 
-      {!group ? (
+      {loading || !group ? (
         <div className="screen" style={{ paddingTop: 'var(--space-4)' }}>
           <div className="card card-body">
             <Skeleton variant="text" size="lg" width="60%" />
@@ -72,12 +75,8 @@ export function GroupLayout() {
           </div>
         </div>
       ) : (
-        <Outlet context={{ group, services, refreshGroup } satisfies GroupContext} />
+        <Outlet context={{ group, services, refreshGroup: reload } satisfies GroupContext} />
       )}
     </>
   )
-}
-
-export function useGroupContext() {
-  return useOutletContext<GroupContext>()
 }

@@ -1,5 +1,5 @@
 import { LogOut } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Header } from '../components/layout/Header'
@@ -10,17 +10,16 @@ import { MetricCard } from '../components/ui/MetricCard'
 import { CardSkeleton } from '../components/ui/Skeleton'
 import { formatDate, formatMoney, historyOutcomeLabel, shortEmail } from '../lib/format'
 import { authService, createAuthedServices } from '../lib/services'
-import { useSession } from '../lib/session'
-import type { GroupSummary, MemberHistory, MemberStats } from '../lib/types'
+import { useAsyncResource } from '../lib/useAsyncResource'
+import { useSession } from '../lib/useSession'
+import { useToasts } from '../lib/useToasts'
+import type { GroupSummary } from '../lib/types'
 
 export function ProfilePage() {
-  const { session, setSession, clearSession, currentGroupId, user } = useSession()
+  const { session, setSession, clearSession, user } = useSession()
   const navigate = useNavigate()
-  const [groups, setGroups] = useState<GroupSummary[]>([])
-  const [selectedGroupId, setSelectedGroupId] = useState(currentGroupId)
-  const [stats, setStats] = useState<MemberStats | null>(null)
-  const [history, setHistory] = useState<MemberHistory | null>(null)
-  const [loading, setLoading] = useState(false)
+  const { pushToast } = useToasts()
+  const [selectedGroupId, setSelectedGroupId] = useState('')
   const { t, i18n } = useTranslation()
 
   const services = useMemo(
@@ -33,23 +32,45 @@ export function ProfilePage() {
     [clearSession, session, setSession],
   )
 
-  useEffect(() => {
-    void services.groups.list().then((nextGroups) => {
-      setGroups(nextGroups)
-      if (!selectedGroupId && nextGroups[0]?.groupId) {
-        setSelectedGroupId(nextGroups[0].groupId)
-      }
-    })
-  }, [])
+  const loadGroups = useCallback(async () => services.groups.list(), [services])
+  const { data: groupsData, error: groupsError } = useAsyncResource<GroupSummary[]>('profile-groups', loadGroups)
 
   useEffect(() => {
-    if (!selectedGroupId || !user?.sub) return
-    setLoading(true)
-    void Promise.all([
-      services.settlement.stats(selectedGroupId, user.sub).then(setStats).catch(() => setStats(null)),
-      services.settlement.history(selectedGroupId, user.sub).then(setHistory).catch(() => setHistory(null)),
-    ]).then(() => setLoading(false))
-  }, [selectedGroupId, user?.sub])
+    if (!groupsError) return
+    pushToast(t('common.error'), groupsError.message, 'error')
+  }, [groupsError, pushToast, t])
+
+  const groups = groupsData ?? []
+  const activeGroupId = selectedGroupId || groups[0]?.groupId || ''
+
+  const loadProfileData = useCallback(async () => {
+    if (!activeGroupId || !user?.sub) {
+      return { stats: null, history: null }
+    }
+
+    const [statsResult, historyResult] = await Promise.allSettled([
+      services.settlement.stats(activeGroupId, user.sub),
+      services.settlement.history(activeGroupId, user.sub),
+    ])
+
+    return {
+      stats: statsResult.status === 'fulfilled' ? statsResult.value : null,
+      history: historyResult.status === 'fulfilled' ? historyResult.value : null,
+    }
+  }, [activeGroupId, services, user])
+
+  const { data: profileData, error: profileError, loading } = useAsyncResource(
+    `profile:${activeGroupId}:${user?.sub ?? ''}`,
+    loadProfileData,
+  )
+
+  useEffect(() => {
+    if (!profileError) return
+    pushToast(t('common.error'), profileError.message, 'error')
+  }, [profileError, pushToast, t])
+
+  const stats = profileData?.stats ?? null
+  const history = profileData?.history ?? null
 
   async function handleLogout() {
     if (session?.refreshToken) {
@@ -107,7 +128,7 @@ export function ProfilePage() {
               {groups.map((group) => (
                 <button
                   key={group.groupId}
-                  className={`pill-filter-btn${selectedGroupId === group.groupId ? ' active' : ''}`}
+                  className={`pill-filter-btn${activeGroupId === group.groupId ? ' active' : ''}`}
                   onClick={() => setSelectedGroupId(group.groupId)}
                   type="button"
                 >
@@ -134,7 +155,7 @@ export function ProfilePage() {
               <MetricCard label={t('profilePage.pending')} value={formatMoney(stats.pendingDebtsOwing, stats.currency)} />
             </div>
           </div>
-        ) : selectedGroupId ? null : (
+        ) : activeGroupId ? null : (
           <div className="card card-body">
             <EmptyState
               icon={<span style={{ fontSize: 24 }}>👤</span>}

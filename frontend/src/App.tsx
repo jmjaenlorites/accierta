@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BottomNav } from './components/layout/BottomNav'
 import { ToastViewport } from './components/ui/Toast'
-import { useSession } from './lib/session'
+import { useSession } from './lib/useSession'
 
 // Landing
 import { LandingPage } from './pages/LandingPage'
@@ -32,12 +32,14 @@ import { PorraDetailPage } from './pages/PorraDetailPage'
 import { ProfilePage } from './pages/ProfilePage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { session } = useSession()
+  const { session, ready } = useSession()
+  if (!ready) return null
   return session ? <>{children}</> : <Navigate to="/welcome" replace />
 }
 
 function RootRedirect() {
-  const { session } = useSession()
+  const { session, ready } = useSession()
+  if (!ready) return null
   return <Navigate to={session ? '/groups' : '/landing'} replace />
 }
 

@@ -2,20 +2,21 @@ import { ArrowLeft } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { authService } from '../../lib/services'
-import { useSession } from '../../lib/session'
-import { useToasts } from '../../lib/toasts'
+import { useSession } from '../../lib/useSession'
+import { useToasts } from '../../lib/useToasts'
 import { Button } from '../../components/ui/Button'
 import { Field } from '../../components/ui/Field'
 import { FormShell } from '../../components/ui/FormShell'
 
 export function RegisterPage() {
-  const { session } = useSession()
+  const { session, ready } = useSession()
   const { pushToast } = useToasts()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const invitationToken = searchParams.get('token') ?? ''
 
+  if (!ready) return null
   if (session) return <Navigate to="/groups" replace />
 
   return (

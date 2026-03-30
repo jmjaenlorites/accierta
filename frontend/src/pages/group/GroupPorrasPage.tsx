@@ -1,13 +1,14 @@
 import { Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CreatePorraSheet } from '../../components/porra/CreatePorraSheet'
 import { PorraCard } from '../../components/porra/PorraCard'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { CardSkeleton } from '../../components/ui/Skeleton'
-import { useToasts } from '../../lib/toasts'
+import { useAsyncResource } from '../../lib/useAsyncResource'
+import { useToasts } from '../../lib/useToasts'
 import type { PorraSummary } from '../../lib/types'
-import { useGroupContext } from './GroupLayout'
+import { useGroupContext } from './useGroupContext'
 
 type Filter = '' | 'OPEN' | 'PENDING_RESOLUTION' | 'RESOLVED'
 
@@ -15,21 +16,24 @@ export function GroupPorrasPage() {
   const { group, services } = useGroupContext()
   const { pushToast } = useToasts()
   const { t } = useTranslation()
-  const [porras, setPorras] = useState<PorraSummary[]>([])
   const [filter, setFilter] = useState<Filter>('')
-  const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
 
-  async function load() {
-    setLoading(true)
-    const data = await services.porras.list(group.groupId, filter)
-    setPorras(data)
-    setLoading(false)
-  }
+  const loadPorras = useCallback(
+    async () => services.porras.list(group.groupId, filter),
+    [filter, group.groupId, services],
+  )
+  const { data: porrasData, error, loading, reload } = useAsyncResource<PorraSummary[]>(
+    `group-porras:${group.groupId}:${filter}`,
+    loadPorras,
+  )
 
   useEffect(() => {
-    void load()
-  }, [filter, group.groupId])
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
+
+  const porras = porrasData ?? []
 
   const filterOptions: Array<[Filter, string]> = [
     ['', t('group.all')],
@@ -101,7 +105,7 @@ export function GroupPorrasPage() {
           onCreate={async (payload) => {
             await services.porras.create(group.groupId, payload)
             pushToast(t('porra.createdTitle'), t('porra.createdMessage'), 'success')
-            await load()
+            reload()
           }}
         />
       )}

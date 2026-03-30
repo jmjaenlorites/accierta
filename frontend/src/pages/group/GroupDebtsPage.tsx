@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DebtCardIOwe, DebtCardOwedToMe } from '../../components/debt/DebtCard'
 import { NetBalanceBanner } from '../../components/debt/NetBalanceBanner'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { CardSkeleton } from '../../components/ui/Skeleton'
 import { debtDirectionLabel, formatMoney, shortEmail } from '../../lib/format'
-import { useToasts } from '../../lib/toasts'
+import { useAsyncResource } from '../../lib/useAsyncResource'
+import { useToasts } from '../../lib/useToasts'
 import type { DebtsView } from '../../lib/types'
-import { useGroupContext } from './GroupLayout'
+import { useGroupContext } from './useGroupContext'
 
 type DebtTab = 'iOwe' | 'owedToMe' | 'consolidated'
 
@@ -15,20 +16,18 @@ export function GroupDebtsPage() {
   const { group, services } = useGroupContext()
   const { pushToast } = useToasts()
   const { t } = useTranslation()
-  const [debts, setDebts] = useState<DebtsView | null>(null)
-  const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<DebtTab>('iOwe')
 
-  async function load() {
-    setLoading(true)
-    const data = await services.settlement.debts(group.groupId)
-    setDebts(data)
-    setLoading(false)
-  }
+  const loadDebts = useCallback(async () => services.settlement.debts(group.groupId), [group.groupId, services])
+  const { data: debts, error, loading, reload } = useAsyncResource<DebtsView>(
+    `group-debts:${group.groupId}`,
+    loadDebts,
+  )
 
   useEffect(() => {
-    void load()
-  }, [group.groupId])
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
 
   return (
     <div className="group-screen anim-fade-in">
@@ -68,7 +67,7 @@ export function GroupDebtsPage() {
                     onRequestPayment={async () => {
                       await services.settlement.requestPayment(debt.debtId)
                       pushToast(t('debt.requestTitle'), t('debt.requestMessage'), 'success')
-                      await load()
+                      reload()
                     }}
                   />
                 ))
@@ -95,7 +94,7 @@ export function GroupDebtsPage() {
                     onSettle={async () => {
                       await services.settlement.settle(debt.debtId)
                       pushToast(t('debt.paidTitle'), t('debt.paidMessage'), 'success')
-                      await load()
+                      reload()
                     }}
                   />
                 ))

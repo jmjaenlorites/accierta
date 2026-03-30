@@ -7,6 +7,9 @@ export type SessionAccess = {
   clearSession: () => void
 }
 
+let refreshPromise: Promise<Session> | null = null
+let refreshPromiseToken: string | null = null
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
@@ -30,30 +33,30 @@ export async function apiRequest<T>(
   })
 
   if (response.status === 401 && retry && sessionAccess && session?.refreshToken && !path.endsWith('/refresh')) {
-    const refreshed = await apiRequest<TokenPair>(
-      '/api/auth/refresh',
-      {
-        method: 'POST',
-        body: JSON.stringify({ refreshToken: session.refreshToken }),
-      },
-      undefined,
-      false,
-    )
-    sessionAccess.setSession({
-      accessToken: refreshed.accessToken,
-      refreshToken: refreshed.refreshToken,
-    })
-    return apiRequest<T>(path, options, sessionAccess, false)
+    try {
+      const refreshed = await refreshSession(session.refreshToken)
+      sessionAccess.setSession(refreshed)
+      return apiRequest<T>(path, options, sessionAccess, false)
+    } catch (error) {
+      sessionAccess.clearSession()
+      throw error
+    }
   }
 
   if (!response.ok) {
     let message = `HTTP ${response.status}`
     try {
-      const body = await response.json()
-      message = body.message ?? message
+      const rawBody = await response.text()
+      if (rawBody) {
+        try {
+          const body = JSON.parse(rawBody) as { message?: string }
+          message = body.message ?? rawBody
+        } catch {
+          message = rawBody
+        }
+      }
     } catch {
-      const text = await response.text()
-      if (text) message = text
+      // Ignore body parsing failures and keep the default status-based message.
     }
     if (response.status === 401 && sessionAccess) {
       sessionAccess.clearSession()
@@ -77,9 +80,45 @@ export function parseJwt(token: string | null): Record<string, unknown> | null {
   if (!token) return null
   try {
     const payload = token.split('.')[1]
+    if (!payload) return null
     const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
-    return JSON.parse(atob(normalized))
+    const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=')
+    return JSON.parse(atob(padded))
   } catch {
     return null
   }
+}
+
+export function isJwtExpired(token: string | null, skewSeconds = 30): boolean {
+  const payload = parseJwt(token)
+  const expiresAt = typeof payload?.exp === 'number' ? payload.exp : null
+  if (!expiresAt) return false
+  return expiresAt <= Math.floor(Date.now() / 1000) + skewSeconds
+}
+
+export async function refreshSession(refreshToken: string): Promise<Session> {
+  if (refreshPromise && refreshPromiseToken === refreshToken) {
+    return refreshPromise
+  }
+
+  refreshPromiseToken = refreshToken
+  refreshPromise = apiRequest<TokenPair>(
+    '/api/auth/refresh',
+    {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    },
+    undefined,
+    false,
+  )
+    .then((refreshed) => ({
+      accessToken: refreshed.accessToken,
+      refreshToken: refreshed.refreshToken,
+    }))
+    .finally(() => {
+      refreshPromise = null
+      refreshPromiseToken = null
+    })
+
+  return refreshPromise
 }

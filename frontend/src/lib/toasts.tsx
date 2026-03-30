@@ -1,16 +1,9 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
+import { ToastContext, type ToastContextValue } from './toastContext'
 import type { Toast } from './types'
 
 const DISMISS_DELAY = 4000   // ms before auto-dismiss starts
 const EXIT_DURATION = 300    // ms for exit animation (matches toast-out)
-
-type ToastContextValue = {
-  toasts: Toast[]
-  pushToast: (title: string, message: string, kind: Toast['kind']) => void
-  dismissToast: (id: string) => void
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null)
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
@@ -38,17 +31,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       },
       dismissToast,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [toasts, dismissToast],
   )
 
   return <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
-}
-
-export function useToasts() {
-  const context = useContext(ToastContext)
-  if (!context) {
-    throw new Error('useToasts must be used within ToastProvider')
-  }
-  return context
 }

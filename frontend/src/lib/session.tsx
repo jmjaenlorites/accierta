@@ -1,60 +1,72 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
-import { parseJwt } from './api'
-import type { CurrentUser, Session } from './types'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { isJwtExpired, parseJwt, refreshSession } from './api'
+import { SessionContext, type SessionContextValue } from './sessionContext'
+import type { Session } from './types'
 
-type SessionContextValue = {
-  session: Session | null
-  user: CurrentUser | null
-  currentGroupId: string
-  setCurrentGroupId: (groupId: string) => void
-  setSession: (session: Session) => void
-  clearSession: () => void
+function readStoredSession(): Session | null {
+  const accessToken = localStorage.getItem('accierta.frontend.accessToken')
+  const refreshToken = localStorage.getItem('accierta.frontend.refreshToken')
+  return accessToken && refreshToken ? { accessToken, refreshToken } : null
 }
 
-const SessionContext = createContext<SessionContextValue | null>(null)
-
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const [session, setSessionState] = useState<Session | null>(() => {
-    const accessToken = localStorage.getItem('accierta.frontend.accessToken')
-    const refreshToken = localStorage.getItem('accierta.frontend.refreshToken')
-    return accessToken && refreshToken ? { accessToken, refreshToken } : null
+  const [session, setSessionState] = useState<Session | null>(readStoredSession)
+  const [bootstrapResolved, setBootstrapResolved] = useState(() => {
+    const storedSession = readStoredSession()
+    return !storedSession || !isJwtExpired(storedSession.accessToken)
   })
-  const [currentGroupId, setCurrentGroupIdState] = useState(
-    () => localStorage.getItem('accierta.frontend.currentGroupId') ?? '',
-  )
+
+  useEffect(() => {
+    if (!session || !isJwtExpired(session.accessToken)) {
+      return
+    }
+
+    let active = true
+
+    void refreshSession(session.refreshToken)
+      .then((nextSession) => {
+        if (!active) return
+        localStorage.setItem('accierta.frontend.accessToken', nextSession.accessToken)
+        localStorage.setItem('accierta.frontend.refreshToken', nextSession.refreshToken)
+        setSessionState(nextSession)
+      })
+      .catch(() => {
+        if (!active) return
+        localStorage.removeItem('accierta.frontend.accessToken')
+        localStorage.removeItem('accierta.frontend.refreshToken')
+        setSessionState(null)
+      })
+      .finally(() => {
+        if (active) setBootstrapResolved(true)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [session])
+
+  const ready = bootstrapResolved
 
   const value = useMemo<SessionContextValue>(() => {
-    const user = parseJwt(session?.accessToken ?? null) as CurrentUser | null
+    const user = parseJwt(session?.accessToken ?? null)
     return {
       session,
       user,
-      currentGroupId,
-      setCurrentGroupId: (groupId: string) => {
-        localStorage.setItem('accierta.frontend.currentGroupId', groupId)
-        setCurrentGroupIdState(groupId)
-      },
+      ready,
       setSession: (nextSession: Session) => {
         localStorage.setItem('accierta.frontend.accessToken', nextSession.accessToken)
         localStorage.setItem('accierta.frontend.refreshToken', nextSession.refreshToken)
+        setBootstrapResolved(true)
         setSessionState(nextSession)
       },
       clearSession: () => {
         localStorage.removeItem('accierta.frontend.accessToken')
         localStorage.removeItem('accierta.frontend.refreshToken')
-        localStorage.removeItem('accierta.frontend.currentGroupId')
+        setBootstrapResolved(true)
         setSessionState(null)
-        setCurrentGroupIdState('')
       },
     }
-  }, [currentGroupId, session])
+  }, [ready, session])
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
-}
-
-export function useSession() {
-  const context = useContext(SessionContext)
-  if (!context) {
-    throw new Error('useSession must be used within SessionProvider')
-  }
-  return context
 }

@@ -1,13 +1,14 @@
 import { CheckCircle, XCircle } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Header } from '../components/layout/Header'
 import { Button } from '../components/ui/Button'
 import { CardSkeleton } from '../components/ui/Skeleton'
 import { createAuthedServices } from '../lib/services'
-import { useSession } from '../lib/session'
-import { useToasts } from '../lib/toasts'
+import { useAsyncResource } from '../lib/useAsyncResource'
+import { useSession } from '../lib/useSession'
+import { useToasts } from '../lib/useToasts'
 import type { InvitationInfo } from '../lib/types'
 
 export function InvitationPage() {
@@ -16,8 +17,6 @@ export function InvitationPage() {
   const { session, setSession, clearSession } = useSession()
   const { pushToast } = useToasts()
   const { t } = useTranslation()
-  const [info, setInfo] = useState<InvitationInfo | null>(null)
-  const [loading, setLoading] = useState(true)
 
   const services = useMemo(
     () =>
@@ -29,12 +28,13 @@ export function InvitationPage() {
     [clearSession, session, setSession],
   )
 
+  const loadInvitation = useCallback(async () => services.invitations.info(token), [services, token])
+  const { data: info, error, loading } = useAsyncResource<InvitationInfo>(`invitation:${token}`, loadInvitation)
+
   useEffect(() => {
-    void services.invitations.info(token).then((data) => {
-      setInfo(data)
-      setLoading(false)
-    })
-  }, [token])
+    if (!error) return
+    pushToast(t('common.error'), error.message, 'error')
+  }, [error, pushToast, t])
 
   const isInvalid = info?.used || info?.expired
 

@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { Link, Navigate } from 'react-router-dom'
-import { useSession } from '../../lib/session'
+import { useSession } from '../../lib/useSession'
 
 export function WelcomePage() {
-  const { session } = useSession()
+  const { session, ready } = useSession()
   const { t } = useTranslation()
 
+  if (!ready) return null
   if (session) return <Navigate to="/groups" replace />
 
   return (
